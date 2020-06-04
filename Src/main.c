@@ -4,6 +4,12 @@
   * @file           : main.c
   * @brief          : Main program body
   ******************************************************************************
+  *
+  * STM32f103 Cube MX project under FreeRTOS
+  * DUAL_Encoder
+  * Add result of a glass scale with a capacitive quill encoder result
+  * and send it as quadrature A/B signal to a DRO
+  *
   * @attention
   *
   * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
