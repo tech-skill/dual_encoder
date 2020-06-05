@@ -351,8 +351,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1)
 	int32_t QuillHeight;
 
 	QuillHeight= quill2Micro();
+    int32_t Diff= previousQuillHeight-QuillHeight;
 
-	// sendqueue previousQuillHeight-QuillHeight;
+	osMailPut(advanceQueueHandle, (void *) Diff);
 	previousQuillHeight= QuillHeight;
 	HAL_UART_Receive_DMA(huart1, QuillScale_data, sizeof(QuillScale_data));
 
@@ -368,6 +369,7 @@ int32_t metric2Micro()
 	Q+=  (QuillScale_data[7]-'0') * 10;
 	Q*=  (QuillScale_data[0]=='-')?-1:1;
 	return Q;
+
 }
 
 int32_t imperial2Micro()
@@ -381,6 +383,7 @@ int32_t imperial2Micro()
 	Q*=  ((QuillScale_data[0]=='-')?-1:1)*254;
 	Q/=  10000;
 	return Q;
+
 }
 
 int32_t quill2Micro()
@@ -391,6 +394,7 @@ int32_t quill2Micro()
 		return imperial2Micro();
 	else
 		return previousQuillHeight;
+
 }
 
 
@@ -434,7 +438,9 @@ void Starttask_100ms(void const * argument)
 	for(;;)
 	{
 		int16_t ZHeight= TIM2->CNT*ENCODERRESOLUTION;
-		// sendqueue previousZHeight- ZHeight;
+		int32_t Diff= previousZHeight- ZHeight;
+
+		osMailPut(advanceQueueHandle, (void *) Diff);
 		previousZHeight= ZHeight;
 		osDelay(100);
 	}
