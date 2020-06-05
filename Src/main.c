@@ -41,6 +41,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define NROFSCALEBYTES 9	// Number of bytes sent by Quill-scale
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -59,6 +61,7 @@ osThreadId task_100msHandle;
 osMessageQId advanceQueueHandle;
 /* USER CODE BEGIN PV */
 
+int32_t previousQuillHeight;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,10 +75,16 @@ void Starttask_100ms(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
+int32_t quill2Micro();
+int32_t metric2Micro();
+int32_t imperial2Micro();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+uint8_t QuillScale_data[NROFSCALEBYTES];
+
 
 /* USER CODE END 0 */
 
@@ -88,7 +97,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -147,13 +155,14 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  HAL_UART_Receive(&huart1, QuillScale_data, sizeof(QuillScale_data), 100);
+  HAL_UART_Receive_DMA(&huart1, QuillScale_data, sizeof(QuillScale_data));
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
   osKernelStart();
-  
+ 
   /* We should never get here as control is now taken by the scheduler */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -334,6 +343,60 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+// QuillScale message complete.
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1)
+{
+	int32_t QuillHeight;
+
+	QuillHeight= quill2Micro();
+
+	// sendqueue previousQuillHeight-QuillHeight;
+	previousQuillHeight= QuillHeight;
+	HAL_UART_Receive_DMA(huart1, QuillScale_data, sizeof(QuillScale_data));
+
+}
+
+int32_t metric2Micro()
+{
+	int32_t Q= (QuillScale_data[1]-'0') * 1000000;
+	Q+=  (QuillScale_data[2]-'0') * 100000;
+	Q+=  (QuillScale_data[3]-'0') * 10000;
+	Q+=  (QuillScale_data[4]-'0') * 1000;
+	Q+=  (QuillScale_data[6]-'0') * 100;
+	Q+=  (QuillScale_data[7]-'0') * 10;
+	Q*=  (QuillScale_data[0]=='-')?-1:1;
+	return Q;
+}
+
+int32_t imperial2Micro()
+{
+	int32_t Q= (QuillScale_data[1]-'0') * 10000000;
+	Q+=  (QuillScale_data[2]-'0') * 1000000;
+	Q+=  (QuillScale_data[4]-'0') * 100000;
+	Q+=  (QuillScale_data[5]-'0') * 10000;
+	Q+=  (QuillScale_data[6]-'0') * 1000;
+	Q+=  (QuillScale_data[7]-'0') * 100;
+	Q*=  ((QuillScale_data[0]=='-')?-1:1)*254;
+	Q/=  10000;
+	return Q;
+}
+
+int32_t quill2Micro()
+{
+	if( QuillScale_data[5]=='.')
+		return metric2Micro();
+	if( QuillScale_data[3]=='.')
+		return imperial2Micro();
+	else
+		return previousQuillHeight;
+}
+
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+	__NOP();
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartMainTask */
@@ -345,11 +408,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartMainTask */
 void StartMainTask(void const * argument)
 {
-    
-    
-    
-    
-
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
@@ -377,7 +435,7 @@ void Starttask_100ms(void const * argument)
   /* USER CODE END Starttask_100ms */
 }
 
-/**
+ /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM1 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
