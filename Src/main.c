@@ -41,6 +41,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define NROFSCALEBYTES 9	// Number of bytes sent by Quill-scale
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -77,6 +79,9 @@ void Starttask_100ms(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+uint8_t QuillScale_data[NROFSCALEBYTES];
+
+
 /* USER CODE END 0 */
 
 /**
@@ -111,6 +116,7 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_UART_Receive_DMA(&huart1, QuillScale_data, sizeof(QuillScale_data));
 
   /* USER CODE END 2 */
 
@@ -331,6 +337,18 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+// QuillScale message complete.
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1)
+{
+	// interprete message
+	__NOP();
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+	__NOP();
+}
 
 /* USER CODE END 4 */
 
