@@ -116,7 +116,7 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Receive_DMA(&huart1, QuillScale_data, sizeof(QuillScale_data));
+  //HAL_UART_Receive_DMA(&huart1, QuillScale_data, sizeof(QuillScale_data));
 
   /* USER CODE END 2 */
 
@@ -152,6 +152,8 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  HAL_UART_Receive(&huart1, QuillScale_data, sizeof(QuillScale_data), 100);
+  HAL_UART_Receive_DMA(&huart1, QuillScale_data, sizeof(QuillScale_data));
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -343,6 +345,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1)
 {
 	// interprete message
 	__NOP();
+	HAL_UART_Receive_DMA(huart1, QuillScale_data, sizeof(QuillScale_data));
+
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
