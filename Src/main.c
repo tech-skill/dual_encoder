@@ -48,7 +48,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define sign(cnt) 	((cnt<0)?-1:1)
+#define abs(cnt)	((cnt<0)?-1*cnt:cnt)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -64,6 +65,10 @@ osMessageQId advanceQueueHandle;
 
 int32_t previousQuillHeight= 0;
 int32_t previousZHeight= 0;
+
+_Bool A[4] = {pdFALSE, pdTRUE, pdTRUE, pdFALSE};
+_Bool B[4] = {pdFALSE, pdFALSE, pdTRUE, pdTRUE};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -398,9 +403,19 @@ int32_t quill2Micro()
 
 }
 
-void Quadrature(int32_t Advance)
+void Quadrature(int32_t count)
 {
-	__NOP();
+
+	  static uint8_t index = 0;
+	  int8_t dir = sign(count);
+	  // send AB signals
+	  for (int32_t counter = 0; counter < abs(count); counter++){
+	    index+=dir;
+	    index &= 0x3;
+	    HAL_GPIO_WritePin(GPIOA, DRO_A_Pin,A[index]?GPIO_PIN_SET:GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOA, DRO_B_Pin,B[index]?GPIO_PIN_SET:GPIO_PIN_RESET);
+	  }
+
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
