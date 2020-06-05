@@ -42,7 +42,7 @@
 /* USER CODE BEGIN PD */
 
 #define NROFSCALEBYTES 9	// Number of bytes sent by Quill-scale
-#define ENCODERRESOLUTION 5	// 5 micrometer resolution
+#define ENCODERRESOLUTION 5	// 5 micrometer  resolution
 
 /* USER CODE END PD */
 
