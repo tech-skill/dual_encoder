@@ -61,6 +61,7 @@ osThreadId task_100msHandle;
 osMessageQId advanceQueueHandle;
 /* USER CODE BEGIN PV */
 
+int32_t previousQuillHeight;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -74,6 +75,9 @@ void Starttask_100ms(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
+int32_t quill2Micro();
+int32_t metric2Micro();
+int32_t imperial2Micro();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -116,7 +120,6 @@ int main(void)
   MX_TIM2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  //HAL_UART_Receive_DMA(&huart1, QuillScale_data, sizeof(QuillScale_data));
 
   /* USER CODE END 2 */
 
@@ -343,11 +346,51 @@ static void MX_GPIO_Init(void)
 // QuillScale message complete.
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1)
 {
-	// interprete message
-	__NOP();
+	int32_t QuillHeight;
+
+	QuillHeight= quill2Micro();
+
+	// sendqueue previousQuillHeight-QuillHeight;
+	previousQuillHeight= QuillHeight;
 	HAL_UART_Receive_DMA(huart1, QuillScale_data, sizeof(QuillScale_data));
 
 }
+
+int32_t metric2Micro()
+{
+	int32_t Q= (QuillScale_data[1]-'0') * 1000000;
+	Q+=  (QuillScale_data[2]-'0') * 100000;
+	Q+=  (QuillScale_data[3]-'0') * 10000;
+	Q+=  (QuillScale_data[4]-'0') * 1000;
+	Q+=  (QuillScale_data[6]-'0') * 100;
+	Q+=  (QuillScale_data[7]-'0') * 10;
+	Q*=  (QuillScale_data[0]=='-')?-1:1;
+	return Q;
+}
+
+int32_t imperial2Micro()
+{
+	int32_t Q= (QuillScale_data[1]-'0') * 10000000;
+	Q+=  (QuillScale_data[2]-'0') * 1000000;
+	Q+=  (QuillScale_data[4]-'0') * 100000;
+	Q+=  (QuillScale_data[5]-'0') * 10000;
+	Q+=  (QuillScale_data[6]-'0') * 1000;
+	Q+=  (QuillScale_data[7]-'0') * 100;
+	Q*=  ((QuillScale_data[0]=='-')?-1:1)*254;
+	Q/=  10000;
+	return Q;
+}
+
+int32_t quill2Micro()
+{
+	if( QuillScale_data[5]=='.')
+		return metric2Micro();
+	if( QuillScale_data[3]=='.')
+		return imperial2Micro();
+	else
+		return previousQuillHeight;
+}
+
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
