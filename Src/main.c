@@ -351,6 +351,14 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 // QuillScale  message complete.
+/**
+  * @brief HAL_UART_RxCpltCallback Function
+  * @note  9 bytes are received from QUILL Encoder UART
+  * convert to micrometers
+  * send Diff to advanceQueue
+  * @param uart-handle
+  * @retval None
+  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1) {
 	int32_t QuillHeight;
 
@@ -364,6 +372,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart1) {
 
 }
 
+
 int32_t metric2Micro() {
 	int32_t Q = (QuillScale_data[1] - '0') * 1000000;
 	Q += (QuillScale_data[2] - '0') * 100000;
@@ -375,6 +384,7 @@ int32_t metric2Micro() {
 	return Q;
 
 }
+
 
 int32_t imperial2Micro() {
 	int32_t Q = (QuillScale_data[1] - '0') * 10000000;
@@ -388,6 +398,7 @@ int32_t imperial2Micro() {
 	return Q;
 
 }
+
 
 int32_t quill2Micro() {
 	if (QuillScale_data[5] == '.')
@@ -449,6 +460,8 @@ void StartMainTask(void const * argument)
 /* USER CODE BEGIN Header_Starttask_100ms */
 /**
 * @brief Function implementing the task_100ms thread.
+* @note  poll TIM2->CNT (= Z-encoder)
+* send Diff to advance-Queue
 * @param argument: Not used
 * @retval None
 */
