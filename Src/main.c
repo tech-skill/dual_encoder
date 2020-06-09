@@ -79,7 +79,7 @@ static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
 void StartMainTask(void const * argument);
-void StartTask_100ms(void const * argument);
+void Starttask_100ms(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -158,7 +158,7 @@ int main(void)
   mainTaskHandle = osThreadCreate(osThread(mainTask), NULL);
 
   /* definition and creation of task_100ms */
-  osThreadDef(task_100ms, StartTask_100ms, osPriorityIdle, 0, 128);
+  osThreadDef(task_100ms, Starttask_100ms, osPriorityIdle, 0, 128);
   task_100msHandle = osThreadCreate(osThread(task_100ms), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -236,7 +236,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
+  htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
@@ -446,16 +446,16 @@ void StartMainTask(void const * argument)
   /* USER CODE END 5 */ 
 }
 
-/* USER CODE BEGIN Header_StartTask_100ms */
+/* USER CODE BEGIN Header_Starttask_100ms */
 /**
- * @brief Function implementing the task_100ms thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartTask_100ms */
-void StartTask_100ms(void const *argument) {
-	/* USER CODE BEGIN StartTask_100ms */
-
+* @brief Function implementing the task_100ms thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Starttask_100ms */
+void Starttask_100ms(void const * argument)
+{
+  /* USER CODE BEGIN Starttask_100ms */
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 	/* Infinite loop */
 	for (;;) {
@@ -467,7 +467,8 @@ void StartTask_100ms(void const *argument) {
 		previousZHeight = ZHeight;
 		osDelay(100);
 	}
-	/* USER CODE END StartTask_100ms */
+
+  /* USER CODE END Starttask_100ms */
 }
 
  /**
